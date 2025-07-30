@@ -65,6 +65,71 @@ document.addEventListener('DOMContentLoaded', function () {
 	})
 })
 
+document.addEventListener('DOMContentLoaded', function () {
+	const isMobile = () => window.matchMedia('(max-width: 1100px)').matches
+	const nav = document.querySelector('.main-nav')
+	if (!nav) {
+		return
+	}
+
+	// Mobile: раскрытие по клику на иконку (основное меню)
+	nav.addEventListener('click', function (e) {
+		if (!isMobile()) return
+		const btn = e.target.closest('.menu-toggle')
+		if (btn) {
+			const li = btn.closest('.has-children')
+			if (li) {
+				const expanded = btn.getAttribute('aria-expanded') === 'true'
+				btn.setAttribute('aria-expanded', !expanded)
+				li.classList.toggle('open', !expanded)
+				// Закрыть другие открытые на этом уровне
+				const parentUl = li.parentElement
+				parentUl.querySelectorAll(':scope > .has-children').forEach(item => {
+					if (item !== li) {
+						item.classList.remove('open')
+						const toggle = item.querySelector(':scope > .menu-toggle')
+						if (toggle) toggle.setAttribute('aria-expanded', 'false')
+					}
+				})
+				e.preventDefault()
+			}
+		}
+	})
+
+	// Закрытие по клику вне меню на мобильных
+	document.addEventListener('click', function (e) {
+		if (!isMobile()) return
+		const nav = document.querySelector('.main-nav')
+		if (!nav.contains(e.target)) {
+			nav.querySelectorAll('.has-children').forEach(item => {
+				item.classList.remove('open')
+				const toggle = item.querySelector('.menu-toggle')
+				if (toggle) toggle.setAttribute('aria-expanded', 'false')
+			})
+			// Скрыть все ul в мега-меню
+			nav.querySelectorAll('.megamenu-title + ul').forEach(ul => {
+				ul.classList.remove('open')
+				ul.style.maxHeight = ''
+			})
+		}
+	})
+
+	// На десктопе: aria-expanded для доступности
+	nav.querySelectorAll('.has-children').forEach(item => {
+		const btn = item.querySelector('.menu-toggle')
+		item.addEventListener('mouseenter', () => {
+			if (!isMobile() && btn) {
+				btn.setAttribute('aria-expanded', 'true')
+			}
+		})
+		item.addEventListener('mouseleave', () => {
+			if (!isMobile() && btn) {
+				btn.setAttribute('aria-expanded', 'false')
+			}
+		})
+	})
+})
+
 gsap.registerPlugin(ScrollTrigger)
 document.querySelectorAll('.fade-in').forEach(item => {
 	gsap.to(item, {
